@@ -81,6 +81,7 @@ publishing {
 }
 
 bintray {
+    // bintray_user and bintray_key should be configured in ~/.gradle/gradle.properties
     user = bintray_user
     key = bintray_key
     configurations = ["archives"]
