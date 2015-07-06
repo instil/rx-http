@@ -1,7 +1,11 @@
-apply plugin: "java"
-apply plugin: "idea"
-apply plugin: "checkstyle"
-apply plugin: "findbugs"
+plugins {
+    id "com.jfrog.bintray" version "1.2"
+    id "java"
+    id "idea"
+    id "checkstyle"
+    id "findbugs"
+    id "maven-publish"
+}
 
 group = "co.instil.rx"
 version = "1.0"
@@ -26,4 +30,72 @@ dependencies {
 findbugs {
     includeFilter = file("config/findbugs/includeFilter.xml")
     excludeFilter = file("config/findbugs/excludeFilter.xml")
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = "sources"
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = "javadoc"
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id "instil"
+            name "Instil"
+            email "team@instil.co"
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml {
+                def root = asNode()
+                root.appendNode("description", "A simple wrapper over the top of rxapache-http")
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
+
+bintray {
+    user = bintray_user
+    key = bintray_key
+    configurations = ["archives"]
+    publications = ["mavenJava"]
+    publish = true
+    pkg {
+        repo = "Instil"
+        userOrg = "instil"
+        name = "co.instil.rx:rx-http"
+        desc = "A simple wrapper over the top of rxapache-http"
+        websiteUrl = "https://github.com/instil/rx-http"
+        issueTrackerUrl = "https://github.com/instil/rx-http/issues"
+        vcsUrl = "https://github.com/instil/rx-http.git"
+        licenses = ["Apache-2.0"]
+        labels = ["rx-http"]
+        publicDownloadNumbers = true
+    }
 }
