@@ -11,11 +11,12 @@ group = "co.instil.rx"
 version = "1.0"
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 dependencies {
-    // https://github.com/ReactiveX/RxApacheHttp/pull/5
+    // https://github.com/ReactiveX/RxApacheHttp/pull/5 - the source of rxapache-http is bundled
+    // with this module until this pull request is merged to fix chunked encoding
     // compile "io.reactivex:rxapache-http:0.21.0"
     compile "io.reactivex:rxjava:1.0.12"
     compile "io.reactivex:rxjava-string:0.21.0"
@@ -67,7 +68,7 @@ def pomConfig = {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId 'rx-http'
+            artifactId "rx-http"
 
             from components.java
             artifact sourcesJar
