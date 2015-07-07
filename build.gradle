@@ -8,6 +8,7 @@ plugins {
 }
 
 group = "co.instil.rx"
+archivesBaseName = "rx-http"
 version = "1.0"
 
 repositories {
@@ -68,8 +69,6 @@ def pomConfig = {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId "rx-http"
-
             from components.java
             artifact sourcesJar
             artifact javadocJar
