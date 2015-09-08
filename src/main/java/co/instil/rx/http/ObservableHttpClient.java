@@ -119,7 +119,6 @@ public class ObservableHttpClient {
      * use {@link #executeHttpRequest(org.apache.http.client.methods.HttpUriRequest)}.
      */
     public Observable<ObservableHttpResponse> httpGet(String url) {
-        logger.debug("Executing async HTTP GET for {}", url);
         RequestBuilder request = RequestBuilder.get(url);
         return executeHttpRequest(request.build());
     }
@@ -129,7 +128,6 @@ public class ObservableHttpClient {
      * use {@link #executeHttpRequest(org.apache.http.client.methods.HttpUriRequest)}.
      */
     public Observable<ObservableHttpResponse> httpPost(String url, String body) throws UnsupportedEncodingException {
-        logger.debug("Executing async HTTP POST for {}", url);
         RequestBuilder request = RequestBuilder.post(url).setEntity(new StringEntity(body));
         return executeHttpRequest(request.build());
     }
@@ -139,7 +137,6 @@ public class ObservableHttpClient {
      * use {@link #executeHttpRequest(org.apache.http.client.methods.HttpUriRequest)}.
      */
     public Observable<ObservableHttpResponse> httpPut(String url, String body) throws UnsupportedEncodingException {
-        logger.debug("Executing async HTTP PUT for {}", url);
         RequestBuilder request = RequestBuilder.put(url).setEntity(new StringEntity(body));
         return executeHttpRequest(request.build());
     }
@@ -149,7 +146,6 @@ public class ObservableHttpClient {
      * use {@link #executeHttpRequest(org.apache.http.client.methods.HttpUriRequest)}.
      */
     public Observable<ObservableHttpResponse> httpDelete(String url) throws UnsupportedEncodingException {
-        logger.debug("Executing async HTTP DELETE for {}", url);
         RequestBuilder request = RequestBuilder.delete(url);
         return executeHttpRequest(request.build());
     }
@@ -164,6 +160,7 @@ public class ObservableHttpClient {
      * </code>
      */
     public Observable<ObservableHttpResponse> executeHttpRequest(HttpUriRequest request) {
+        logger.debug("Executing async {}", request);
         HttpClientContext clientContext = HttpClientContext.create();
         clientContext.setAuthCache(authCache);
         ObservableHttp observableHttp = ObservableHttp.createRequest(HttpAsyncMethods.create(request), asyncHttpClient, clientContext);

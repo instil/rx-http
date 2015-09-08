@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compile "co.instil.rx:rx-http:1.0"
+    compile "co.instil.rx:rx-http:1.1"
 }
 ```
 
