@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.apache.http.ObservableHttp;
+import rx.functions.Action1;
 import rx.functions.Func1;
 
 import java.io.IOException;
@@ -164,10 +165,17 @@ public class ObservableHttpClient {
         HttpClientContext clientContext = HttpClientContext.create();
         clientContext.setAuthCache(authCache);
         ObservableHttp observableHttp = ObservableHttp.createRequest(HttpAsyncMethods.create(request), asyncHttpClient, clientContext);
-        return observableHttp.toObservable().map(new Func1<rx.apache.http.ObservableHttpResponse, ObservableHttpResponse>() {
+        return observableHttp.toObservable()
+        .map(new Func1<rx.apache.http.ObservableHttpResponse, ObservableHttpResponse>() {
             @Override
             public ObservableHttpResponse call(rx.apache.http.ObservableHttpResponse observableHttpResponse) {
                 return new ObservableHttpResponse(observableHttpResponse);
+            }
+        })
+        .doOnError(new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                logger.error("Failed to executed async request", throwable);
             }
         });
     }
