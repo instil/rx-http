@@ -30,6 +30,9 @@ import rx.functions.Func1;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * A HTTP client which utilises RX and the Apache Async HTTP libraries to execute asynchronous
@@ -102,6 +105,18 @@ public class ObservableHttpClient {
     }
 
     /**
+     * Enable preemptive HTTP basic authentication for a supplied URL. This will cause the Authorization
+     * header to be sent with every request to the server to avoid challenge/response authentication.
+     */
+    public void enablePreemptiveBasicAuth(URL url) {
+        if (url != null) {
+            logger.debug("Enabling preemptive basic authentication for {}", url);
+            BasicScheme basicAuth = new BasicScheme();
+            authCache.put(new HttpHost(url.getHost(), url.getPort(), url.getProtocol()), basicAuth);
+        }
+    }
+
+    /**
      * Enable preemptive HTTP digest authentication for a supplied host. This will cause the Authorization
      * header to be sent with every request to the server to avoid challenge/response authentication.
      */
@@ -112,6 +127,20 @@ public class ObservableHttpClient {
             digestAuth.overrideParamter("realm", realm);
             digestAuth.overrideParamter("nonce", nonce);
             authCache.put(new HttpHost(hostname), digestAuth);
+        }
+    }
+
+    /**
+     * Enable preemptive HTTP digest authentication for a supplied URL. This will cause the Authorization
+     * header to be sent with every request to the server to avoid challenge/response authentication.
+     */
+    public void enablePreemptiveDigestAuth(URL url, String realm, String nonce) {
+        if (url != null) {
+            logger.debug("Enabling preemptive digest authentication for {}", url);
+            DigestScheme digestAuth = new DigestScheme();
+            digestAuth.overrideParamter("realm", realm);
+            digestAuth.overrideParamter("nonce", nonce);
+            authCache.put(new HttpHost(url.getHost(), url.getPort(), url.getProtocol()), digestAuth);
         }
     }
 
