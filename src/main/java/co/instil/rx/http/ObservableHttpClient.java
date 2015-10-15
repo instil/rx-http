@@ -54,12 +54,22 @@ public class ObservableHttpClient {
      * Create an observable HTTP client and start threads used for request/response handling.
      */
     public ObservableHttpClient(String username,
+                      String password,
+                      int connectTimeout,
+                      int socketTimeout,
+                      int connectionPoolSize) {
+
+        this(username, password, connectTimeout, socketTimeout, connectionPoolSize, null);
+    }
+
+    public ObservableHttpClient(String username,
                                 String password,
                                 int connectTimeout,
                                 int socketTimeout,
-                                int connectionPoolSize) {
+                                int connectionPoolSize,
+                                RequestConfig requestConfig) {
 
-        defaultRequestConfig = RequestConfig.custom()
+        defaultRequestConfig = builderForRequestConfig(requestConfig)
                 .setConnectTimeout(connectTimeout)
                 .setSocketTimeout(socketTimeout)
                 .build();
@@ -70,6 +80,14 @@ public class ObservableHttpClient {
                 .setMaxConnTotal(connectionPoolSize)
                 .build();
         asyncHttpClient.start();
+    }
+
+    private RequestConfig.Builder builderForRequestConfig(RequestConfig requestConfig) {
+        if (requestConfig != null) {
+            return RequestConfig.copy(requestConfig);
+        } else {
+            return RequestConfig.custom();
+        }
     }
 
     /**
