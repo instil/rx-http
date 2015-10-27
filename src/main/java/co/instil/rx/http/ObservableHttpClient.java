@@ -207,7 +207,7 @@ public class ObservableHttpClient {
      * executeHttpRequest(request.build());
      * </code>
      */
-    public Observable<ObservableHttpResponse> executeHttpRequest(HttpUriRequest request) {
+    public Observable<ObservableHttpResponse> executeHttpRequest(final HttpUriRequest request) {
         logger.debug("Executing async {}", request);
         HttpClientContext clientContext = HttpClientContext.create();
         clientContext.setAuthCache(authCache);
@@ -222,7 +222,7 @@ public class ObservableHttpClient {
         .doOnError(new Action1<Throwable>() {
             @Override
             public void call(Throwable throwable) {
-                logger.error("Failed to executed async request", throwable);
+                logger.error("Failed to execute async request to {}", request.getRequestLine().getUri(), throwable);
             }
         });
     }
