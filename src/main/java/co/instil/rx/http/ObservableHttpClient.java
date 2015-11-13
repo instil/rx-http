@@ -30,6 +30,9 @@ import rx.functions.Func1;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * A HTTP client which utilises RX and the Apache Async HTTP libraries to execute asynchronous
@@ -51,12 +54,22 @@ public class ObservableHttpClient {
      * Create an observable HTTP client and start threads used for request/response handling.
      */
     public ObservableHttpClient(String username,
+                      String password,
+                      int connectTimeout,
+                      int socketTimeout,
+                      int connectionPoolSize) {
+
+        this(username, password, connectTimeout, socketTimeout, connectionPoolSize, null);
+    }
+
+    public ObservableHttpClient(String username,
                                 String password,
                                 int connectTimeout,
                                 int socketTimeout,
-                                int connectionPoolSize) {
+                                int connectionPoolSize,
+                                RequestConfig requestConfig) {
 
-        defaultRequestConfig = RequestConfig.custom()
+        defaultRequestConfig = builderForRequestConfig(requestConfig)
                 .setConnectTimeout(connectTimeout)
                 .setSocketTimeout(socketTimeout)
                 .build();
@@ -67,6 +80,14 @@ public class ObservableHttpClient {
                 .setMaxConnTotal(connectionPoolSize)
                 .build();
         asyncHttpClient.start();
+    }
+
+    private RequestConfig.Builder builderForRequestConfig(RequestConfig requestConfig) {
+        if (requestConfig != null) {
+            return RequestConfig.copy(requestConfig);
+        } else {
+            return RequestConfig.custom();
+        }
     }
 
     /**
@@ -102,6 +123,18 @@ public class ObservableHttpClient {
     }
 
     /**
+     * Enable preemptive HTTP basic authentication for a supplied URL. This will cause the Authorization
+     * header to be sent with every request to the server to avoid challenge/response authentication.
+     */
+    public void enablePreemptiveBasicAuth(URL url) {
+        if (url != null) {
+            logger.debug("Enabling preemptive basic authentication for {}", url);
+            BasicScheme basicAuth = new BasicScheme();
+            authCache.put(new HttpHost(url.getHost(), url.getPort(), url.getProtocol()), basicAuth);
+        }
+    }
+
+    /**
      * Enable preemptive HTTP digest authentication for a supplied host. This will cause the Authorization
      * header to be sent with every request to the server to avoid challenge/response authentication.
      */
@@ -112,6 +145,20 @@ public class ObservableHttpClient {
             digestAuth.overrideParamter("realm", realm);
             digestAuth.overrideParamter("nonce", nonce);
             authCache.put(new HttpHost(hostname), digestAuth);
+        }
+    }
+
+    /**
+     * Enable preemptive HTTP digest authentication for a supplied URL. This will cause the Authorization
+     * header to be sent with every request to the server to avoid challenge/response authentication.
+     */
+    public void enablePreemptiveDigestAuth(URL url, String realm, String nonce) {
+        if (url != null) {
+            logger.debug("Enabling preemptive digest authentication for {}", url);
+            DigestScheme digestAuth = new DigestScheme();
+            digestAuth.overrideParamter("realm", realm);
+            digestAuth.overrideParamter("nonce", nonce);
+            authCache.put(new HttpHost(url.getHost(), url.getPort(), url.getProtocol()), digestAuth);
         }
     }
 
@@ -160,7 +207,7 @@ public class ObservableHttpClient {
      * executeHttpRequest(request.build());
      * </code>
      */
-    public Observable<ObservableHttpResponse> executeHttpRequest(HttpUriRequest request) {
+    public Observable<ObservableHttpResponse> executeHttpRequest(final HttpUriRequest request) {
         logger.debug("Executing async {}", request);
         HttpClientContext clientContext = HttpClientContext.create();
         clientContext.setAuthCache(authCache);
@@ -175,7 +222,7 @@ public class ObservableHttpClient {
         .doOnError(new Action1<Throwable>() {
             @Override
             public void call(Throwable throwable) {
-                logger.error("Failed to executed async request", throwable);
+                logger.error("Failed to execute async request to {}", request.getRequestLine().getUri(), throwable);
             }
         });
     }
